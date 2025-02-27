@@ -7,28 +7,29 @@ import env from '#start/env'
 import { ConnectionServiceContract } from '#contracts/connection_service_contract'
 
 @inject()
-export default class ConnectionManager implements ConnectionServiceContract {
+export default class ConnectionService implements ConnectionServiceContract {
   private static connections: Map<string, WASocket> = new Map()
   private static connectionStates: Map<string, ConnectionState> = new Map()
   private readonly maxConnections: number
+  private lastActivityMap: any
 
   constructor() {
     this.maxConnections = Number(env.get('MAX_WHATSAPP_CONNECTIONS', 100))
   }
 
   getAllConnections(): Map<string, WASocket> {
-    return new Map(ConnectionManager.connections)
+    return new Map(ConnectionService.connections)
   }
 
   getConnection(deviceId: string): WASocket | undefined {
-    return ConnectionManager.connections.get(deviceId)
+    return ConnectionService.connections.get(deviceId)
   }
 
   setConnection(deviceId: string, socket: WASocket): void {
     // If max connections reached, evict the oldest connection
     if (
-      ConnectionManager.connections.size >= this.maxConnections &&
-      !ConnectionManager.connections.has(deviceId)
+      ConnectionService.connections.size >= this.maxConnections &&
+      !ConnectionService.connections.has(deviceId)
     ) {
       const oldestDeviceId = this.findLeastRecentlyUsedDevice()
       if (oldestDeviceId) {
@@ -38,21 +39,21 @@ export default class ConnectionManager implements ConnectionServiceContract {
       }
     }
 
-    ConnectionManager.connections.set(deviceId, socket)
+    ConnectionService.connections.set(deviceId, socket)
   }
 
   removeConnection(deviceId: string): void {
-    ConnectionManager.connections.delete(deviceId)
-    ConnectionManager.connectionStates.delete(deviceId)
+    ConnectionService.connections.delete(deviceId)
+    ConnectionService.connectionStates.delete(deviceId)
   }
 
   getConnectionState(deviceId: string): ConnectionState | undefined {
-    return ConnectionManager.connectionStates.get(deviceId)
+    return ConnectionService.connectionStates.get(deviceId)
   }
 
   setConnectionState(deviceId: string, state: Partial<ConnectionState>): void {
-    const currentState = ConnectionManager.connectionStates.get(deviceId) || {}
-    ConnectionManager.connectionStates.set(deviceId, <ConnectionState>{
+    const currentState = ConnectionService.connectionStates.get(deviceId) || {}
+    ConnectionService.connectionStates.set(deviceId, <ConnectionState>{
       ...currentState,
       ...state,
     })
@@ -73,10 +74,18 @@ export default class ConnectionManager implements ConnectionServiceContract {
   }
 
   private findLeastRecentlyUsedDevice(): string | undefined {
-    // This implementation simply takes the first device in the connection map
-    // In a real-world scenario. You would track last activity timestamps for each connection
-    const [firstDevice] = ConnectionManager.connections.keys()
+    // Implementation with tracking of last activity timestamp
+    let oldestDevice: string | undefined
+    let oldestTimestamp = Infinity
 
-    return firstDevice
+    // Using a separate Map to track last activity times
+    for (const [deviceId, lastActivity] of this.lastActivityMap.entries()) {
+      if (lastActivity < oldestTimestamp) {
+        oldestTimestamp = lastActivity
+        oldestDevice = deviceId
+      }
+    }
+
+    return oldestDevice
   }
 }

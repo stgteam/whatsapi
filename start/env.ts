@@ -35,11 +35,13 @@ export default await Env.create(new URL('../', import.meta.url), {
   REDIS_PORT: Env.schema.number(),
   REDIS_PASSWORD: Env.schema.string.optional(),
 
-  // Whatsapp specific config
+  // WhatsApp specific config
   MAX_WHATSAPP_CONNECTIONS: Env.schema.number.optional(),
   WHATSAPP_CONNECTION_TIMEOUT: Env.schema.number.optional(),
   WHATSAPP_RECONNECT_INTERVAL: Env.schema.number.optional(),
   WHATSAPP_AUTO_RECONNECT: Env.schema.boolean.optional(),
+  MESSAGE_RETRY_COUNT: Env.schema.number.optional(),
+  MESSAGE_RETRY_DELAY: Env.schema.number.optional(),
 
   // API security
   API_KEY: Env.schema.string(),

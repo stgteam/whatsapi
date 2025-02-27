@@ -6,8 +6,13 @@ export default class EncryptionService {
   private readonly key: Buffer
 
   constructor() {
-    // Get encryption key from environment or generate one
-    const keyString = env.get('ENCRYPTION_KEY', '')
+    // Get encryption key from environment
+    const keyString = env.get('ENCRYPTION_KEY')
+
+    if (!keyString || keyString.length !== 64) {
+      throw new Error('Invalid encryption key. Must be a 64-character hex string.')
+    }
+
     this.key = Buffer.from(keyString, 'hex')
   }
 

@@ -38,7 +38,7 @@ export default class CreateSessionsController {
         return response.status(404).send({ error: 'Device not found' })
       }
 
-      if (error instanceof vine.errorReporter.prototype) {
+      if (error.code === 'E_VALIDATION_ERROR') {
         return response.status(422).send({
           error: 'Validation failed',
           messages: error.messages,

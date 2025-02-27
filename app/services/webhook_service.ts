@@ -56,22 +56,30 @@ export default class WebhookService implements WebhookServiceContract {
           const timestamp = Math.floor(Date.now() / 1000).toString()
           const signature = this.generateSignature(timestamp, JSON.stringify(payload))
 
-          const response = await fetch(this.url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Webhook-Signature': signature,
-              'X-Webhook-Timestamp': timestamp,
-            },
-            body: JSON.stringify(payload),
-          })
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 second timeout
 
-          if (!response.ok) {
-            throw new Error(`Webhook request failed with status: ${response.status}`)
+          try {
+            const response = await fetch(this.url, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Webhook-Signature': signature,
+                'X-Webhook-Timestamp': timestamp,
+              },
+              body: JSON.stringify(payload),
+              signal: controller.signal,
+            })
+
+            if (!response.ok) {
+              throw new Error(`Webhook request failed with status: ${response.status}`)
+            }
+
+            logger.debug('Webhook sent successfully', { event: payload.event })
+            return true
+          } finally {
+            clearTimeout(timeoutId)
           }
-
-          logger.debug('Webhook sent successfully', { event: payload.event })
-          return true
         },
         {
           retries: this.retryCount,
