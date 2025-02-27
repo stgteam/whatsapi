@@ -8,8 +8,9 @@ export default class SendMessagesController {
 
   async handle({ request, response }: HttpContext) {
     try {
-      const { messageId } = request.all()
+      const messageId = request.input('messageId')
       await this.messageService.send(messageId)
+
       return response.status(200).send({ message: 'Message sent successfully' })
     } catch (error) {
       return response.status(400).send({ error: error.message })

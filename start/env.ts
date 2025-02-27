@@ -29,8 +29,29 @@ export default await Env.create(new URL('../', import.meta.url), {
   DB_PASSWORD: Env.schema.string.optional(),
   DB_DATABASE: Env.schema.string(),
 
+  // Redis and rate limiter configuration
   LIMITER_STORE: Env.schema.enum(['redis', 'database', 'memory'] as const),
   REDIS_HOST: Env.schema.string(),
   REDIS_PORT: Env.schema.number(),
   REDIS_PASSWORD: Env.schema.string.optional(),
+
+  // Whatsapp specific config
+  MAX_WHATSAPP_CONNECTIONS: Env.schema.number.optional(),
+  WHATSAPP_CONNECTION_TIMEOUT: Env.schema.number.optional(),
+  WHATSAPP_RECONNECT_INTERVAL: Env.schema.number.optional(),
+  WHATSAPP_AUTO_RECONNECT: Env.schema.boolean.optional(),
+
+  // API security
+  API_KEY: Env.schema.string(),
+  API_RATE_LIMIT: Env.schema.number.optional(),
+  API_RATE_LIMIT_WINDOW: Env.schema.string.optional(),
+
+  // Webhook config
+  WEBHOOK_URL: Env.schema.string.optional(),
+  WEBHOOK_SECRET_KEY: Env.schema.string.optional(),
+  WEBHOOK_RETRY_COUNT: Env.schema.number.optional(),
+  WEBHOOK_RETRY_DELAY: Env.schema.number.optional(),
+
+  // Encryption key for encrypting sensitive data
+  ENCRYPTION_KEY: Env.schema.string(),
 })

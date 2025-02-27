@@ -16,13 +16,13 @@ const SendMessagesController = () => import('#controllers/send_messages_controll
 router
   .group(() => {
     // Session management
-    router.post('/create-session/', [CreateSessionsController]).use(apiThrottle)
+    router.post('/sessions', [CreateSessionsController]).use(apiThrottle)
+    router.delete('/sessions', [TerminateSessionsController])
 
     // router.get('/sessions/:deviceId', '#controllers/whatsapp_controller.getSession')
-    router.delete('/delete-session', [TerminateSessionsController])
 
     // Messages
-    router.post('/send-messages', [SendMessagesController]).use(apiThrottle)
+    router.post('/messagess', [SendMessagesController]).use(apiThrottle)
 
     // router.get('/devices/:deviceId/messages', '#controllers/whatsapp_controller.getMessages')
 

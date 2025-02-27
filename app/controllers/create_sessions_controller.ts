@@ -1,24 +1,50 @@
 import { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
-import Device from '#models/device'
-import DeviceService from '#services/device_service'
-import WebhookService from '#services/webhook_service'
+import type { DeviceServiceContract } from '#contracts/device_service_contract'
+import DeviceRepository from '#repositories/device_repository'
+import vine from '@vinejs/vine'
 
 @inject()
 export default class CreateSessionsController {
-  constructor(protected webhookService: WebhookService) {}
+  constructor(
+    protected deviceService: DeviceServiceContract,
+    protected deviceRepository: DeviceRepository
+  ) {}
 
   async handle({ request, response }: HttpContext) {
     try {
-      const deviceId = request.input('deviceId')
-      const device: Device = await Device.findOrFail(deviceId)
-      const deviceService = new DeviceService(device, this.webhookService)
+      // Validate request
+      const schema = vine.object({
+        deviceId: vine.string().trim(),
+      })
 
-      if (!device) return response.status(404).send({ error: 'Device not found' })
+      const { deviceId } = await vine.validate({
+        schema,
+        data: request.all(),
+      })
 
-      await deviceService.createSession()
-      return response.status(201).send({ message: 'Session created successfully' })
+      const device = await this.deviceRepository.findByIdOrFail(deviceId)
+
+      const pairingCode = await this.deviceService.createSessionForDevice(device)
+
+      return response.status(201).send({
+        message: 'Session created successfully',
+        data: {
+          pairingCode,
+        },
+      })
     } catch (error) {
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.status(404).send({ error: 'Device not found' })
+      }
+
+      if (error instanceof vine.errorReporter.prototype) {
+        return response.status(422).send({
+          error: 'Validation failed',
+          messages: error.messages,
+        })
+      }
+
       return response.status(400).send({ error: error.message })
     }
   }
