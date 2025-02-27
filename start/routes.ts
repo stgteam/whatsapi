@@ -15,6 +15,9 @@ const SendMessagesController = () => import('#controllers/send_messages_controll
 
 router
   .group(() => {
+    //
+    router.get('/health', [() => import('#controllers/health_controller')])
+
     // Session management
     router.post('/sessions', [CreateSessionsController]).use(apiThrottle)
     router.delete('/sessions', [TerminateSessionsController])

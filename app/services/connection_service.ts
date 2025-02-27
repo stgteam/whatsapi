@@ -74,8 +74,9 @@ export default class ConnectionManager implements ConnectionServiceContract {
 
   private findLeastRecentlyUsedDevice(): string | undefined {
     // This implementation simply takes the first device in the connection map
-    // In a real-world scenario, you would track last activity timestamps for each connection
+    // In a real-world scenario. You would track last activity timestamps for each connection
     const [firstDevice] = ConnectionManager.connections.keys()
+
     return firstDevice
   }
 }
