@@ -22,7 +22,7 @@ router
     // router.get('/sessions/:deviceId', '#controllers/whatsapp_controller.getSession')
 
     // Messages
-    router.post('/messagess', [SendMessagesController]).use(apiThrottle)
+    router.post('/messages', [SendMessagesController]).use(apiThrottle)
 
     // router.get('/devices/:deviceId/messages', '#controllers/whatsapp_controller.getMessages')
 
