@@ -1,5 +1,6 @@
 import { ApplicationService } from '@adonisjs/core/types'
-import { ConnectionServiceContract } from '#contracts/connection_service_contract'
+import type { ConnectionServiceContract } from '#contracts/connection_service_contract'
+import DeviceStatusListener from '#listeners/device_status_listener'
 
 export default class AppProvider {
   constructor(protected app: ApplicationService) {}
@@ -22,7 +23,9 @@ export default class AppProvider {
   /**
    * The process has been started
    */
-  async ready() {}
+  async ready() {
+    await this.app.container.make(DeviceStatusListener)
+  }
 
   /**
    * Preparing to shut down the app
@@ -51,6 +54,22 @@ export default class AppProvider {
       }
     } catch (error) {
       console.error('Error shutting down WhatsApp connections:', error)
+    }
+
+    try {
+      // Get the listener instance from the container
+      if (this.app.container.hasBinding(DeviceStatusListener)) {
+        const listener = await this.app.container.make(DeviceStatusListener)
+
+        // Call the cleanup method
+        if (typeof listener.cleanup === 'function') {
+          listener.cleanup()
+        }
+      }
+
+      // Rest of shutdown code...
+    } catch (error) {
+      console.error('Error during shutdown:', error)
     }
   }
 }

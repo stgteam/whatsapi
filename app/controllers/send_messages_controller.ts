@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
+import vine from '@vinejs/vine'
 import MessageService from '#services/message_service'
 
 @inject()
@@ -8,12 +9,25 @@ export default class SendMessagesController {
 
   async handle({ request, response }: HttpContext) {
     try {
-      const messageId = request.input('messageId')
-      await this.messageService.send(messageId)
+      const schema = vine.object({
+        messageId: vine.string().trim(),
+      })
 
+      const { messageId } = await vine.validate({
+        schema,
+        data: request.all(),
+      })
+
+      await this.messageService.send(messageId)
       return response.status(200).send({ message: 'Message sent successfully' })
     } catch (error) {
-      return response.status(400).send({ error: error.message })
+      if (error.code === 'E_VALIDATION_ERROR') {
+        return response.status(422).send({
+          error: 'Validation failed',
+          messages: error.messages,
+        })
+      }
+      throw error
     }
   }
 }

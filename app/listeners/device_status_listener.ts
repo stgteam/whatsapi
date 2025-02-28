@@ -6,8 +6,17 @@ import { DeviceEventsList } from '#events/device_event'
 
 @inject()
 export default class DeviceStatusListener {
+  private boundHandler: (data: DeviceEventsList['device:status:updated']) => Promise<void>
+
   constructor(protected webhookService: WebhookService) {
-    emitter.on('device:status:updated', this.onDeviceStatusUpdated.bind(this))
+    // Create and store the bound function reference
+    this.boundHandler = this.onDeviceStatusUpdated.bind(this)
+
+    // Register the event listener with the stored reference
+    emitter.on('device:status:updated', this.boundHandler)
+
+    // Log that the listener has been registered (helpful for debugging)
+    logger.debug('DeviceStatusListener: Registered device:status:updated event handler')
   }
 
   async onDeviceStatusUpdated({
@@ -20,5 +29,11 @@ export default class DeviceStatusListener {
     } catch (error) {
       logger.error('Failed to send webhook for device status update:', error)
     }
+  }
+
+  cleanup() {
+    // Remove the event listener using the stored reference
+    emitter.off('device:status:updated', this.boundHandler)
+    logger.debug('DeviceStatusListener: Unregistered device:status:updated event handler')
   }
 }

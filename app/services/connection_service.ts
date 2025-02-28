@@ -11,7 +11,7 @@ export default class ConnectionService implements ConnectionServiceContract {
   private static connections: Map<string, WASocket> = new Map()
   private static connectionStates: Map<string, ConnectionState> = new Map()
   private readonly maxConnections: number
-  private lastActivityMap: any
+  private lastActivityMap: Map<string, number> = new Map<string, number>()
 
   constructor() {
     this.maxConnections = Number(env.get('MAX_WHATSAPP_CONNECTIONS', 100))
@@ -40,6 +40,8 @@ export default class ConnectionService implements ConnectionServiceContract {
     }
 
     ConnectionService.connections.set(deviceId, socket)
+
+    this.lastActivityMap.set(deviceId, Date.now())
   }
 
   removeConnection(deviceId: string): void {
