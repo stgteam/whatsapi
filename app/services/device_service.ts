@@ -13,22 +13,19 @@ import {
 import logger from '@adonisjs/core/services/logger'
 import Device from '#models/device'
 import type { DeviceServiceContract } from '#contracts/device_service_contract'
-import type { WebhookServiceContract } from '#contracts/webhook_service_contract'
-import type { ConnectionServiceContract } from '#contracts/connection_service_contract'
 import { KeyData, SessionData } from '#types/status'
-import DeviceRepository from '#repositories/device_repository'
+import WebhookService from '#services/webhook_service'
+import ConnectionService from '#services/connection_service'
 
 @inject()
 export default class DeviceService implements DeviceServiceContract {
   constructor(
-    protected webhookService: WebhookServiceContract,
-    protected connectionService: ConnectionServiceContract,
-    protected deviceRepository: DeviceRepository
+    protected webhookService: WebhookService,
+    protected connectionService: ConnectionService
   ) {}
 
-  async getSessionStatus(deviceId: string): Promise<string> {
+  async getSessionStatus(device: Device): Promise<string> {
     try {
-      const device = await this.deviceRepository.findByIdOrFail(deviceId)
       if (!device.session_data) return 'disconnected'
 
       const state = this.connectionService.getConnectionState(device.uid)
@@ -42,10 +39,6 @@ export default class DeviceService implements DeviceServiceContract {
       logger.error('Error getting session status:', error)
       return 'disconnected'
     }
-  }
-
-  async createSessionForDevice(device: Device): Promise<string> {
-    return this.createSession(device)
   }
 
   async createSession(device: Device): Promise<string> {
@@ -90,9 +83,8 @@ export default class DeviceService implements DeviceServiceContract {
     }
   }
 
-  async terminateSession(deviceId: string): Promise<void> {
+  async terminateSession(device: Device): Promise<void> {
     try {
-      const device = await this.deviceRepository.findByIdOrFail(deviceId)
       await this.connectionService.terminateConnection(device.uid)
       await this.webhookService.deviceStatusUpdated(device.id, 'disconnected')
     } catch (error) {
@@ -101,8 +93,8 @@ export default class DeviceService implements DeviceServiceContract {
     }
   }
 
-  getActiveConnection(deviceId: string): WASocket | undefined {
-    return this.connectionService.getConnection(deviceId)
+  getActiveConnection(device: Device): WASocket | undefined {
+    return this.connectionService.getConnection(device.uid)
   }
 
   async handleConnectionUpdate(update: Partial<ConnectionState>, device: Device): Promise<void> {

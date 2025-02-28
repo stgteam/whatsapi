@@ -1,13 +1,13 @@
 import { HttpContext } from '@adonisjs/core/http'
 import { inject } from '@adonisjs/core'
-import type { DeviceServiceContract } from '#contracts/device_service_contract'
-import DeviceRepository from '#repositories/device_repository'
 import vine from '@vinejs/vine'
+import DeviceService from '#services/device_service'
+import DeviceRepository from '#repositories/device_repository'
 
 @inject()
 export default class CreateSessionsController {
   constructor(
-    protected deviceService: DeviceServiceContract,
+    protected deviceService: DeviceService,
     protected deviceRepository: DeviceRepository
   ) {}
 
@@ -25,7 +25,7 @@ export default class CreateSessionsController {
 
       const device = await this.deviceRepository.findByIdOrFail(deviceId)
 
-      const pairingCode = await this.deviceService.createSessionForDevice(device)
+      const pairingCode = await this.deviceService.createSession(device)
 
       return response.status(201).send({
         message: 'Session created successfully',

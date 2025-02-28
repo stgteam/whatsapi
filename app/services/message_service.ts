@@ -1,19 +1,19 @@
 // app/services/message_service.ts
 import { inject } from '@adonisjs/core'
 import type { MessageServiceContract } from '#contracts/message_service_contract'
-import type { DeviceServiceContract } from '#contracts/device_service_contract'
-import type { WebhookServiceContract } from '#contracts/webhook_service_contract'
 import logger from '@adonisjs/core/services/logger'
 import DeviceRepository from '#repositories/device_repository'
 import MessageRepository from '#repositories/message_repository'
 import { retry } from '#utils/retry'
 import env from '#start/env'
+import DeviceService from '#services/device_service'
+import WebhookService from '#services/webhook_service'
 
 @inject()
 export default class MessageService implements MessageServiceContract {
   constructor(
-    private deviceService: DeviceServiceContract,
-    private webhookService: WebhookServiceContract,
+    private deviceService: DeviceService,
+    private webhookService: WebhookService,
     private deviceRepository: DeviceRepository,
     private messageRepository: MessageRepository
   ) {}
